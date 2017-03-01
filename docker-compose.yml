@@ -1,0 +1,31 @@
+version: '2'
+services:
+  percona:
+    build: ./percona
+    ports: 
+      - "3306"
+    env_file: ./db.env
+  data:
+    build: ./site
+    env_file:
+      - ./db.env
+      - ./site/wp.env
+    volumes:
+      - /var/www/html
+      - ./wp-content:/var/www/html/wp-content
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes_from:
+      - data
+    volumes:
+      - ./web/site.conf:/etc/nginx/conf.d/site.conf
+  php:
+    build: ./php
+    volumes_from:
+      - data
+    links:
+      - percona:wpdb
+      - web:tutorial.bunkers
+    env_file: ./db.env
